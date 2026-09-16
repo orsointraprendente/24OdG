@@ -277,6 +277,7 @@
         },
 
         aggiungiSquadraManuale() {
+            if (!this.isOrganizzatore()) return;
             const nome = prompt('Nome della squadra:');
             if (!nome) return;
             const giocatori = [];
@@ -298,6 +299,7 @@
         },
 
         importaSquadre() {
+            if (!this.isOrganizzatore()) return;
             const url = prompt('Link Google Sheets (3 colonne: Squadra, Numero, Nome):');
             if (!url) return;
             let csvUrl = url;
@@ -485,6 +487,7 @@
         },
 
         importaPartite() {
+            if (!this.isOrganizzatore()) return;
             const url = prompt('Link Google Sheets partite (colonne: Campo, Orario, SquadraA, SquadraB):');
             if (!url) return;
             let csvUrl = url;
@@ -1308,6 +1311,7 @@
         },
 
         handleAggiungiPartita() {
+            if (!this.isOrganizzatore()) return;
             const campo    = parseInt(document.getElementById('campo').value);
             const orario   = document.getElementById('orario').value;
             const squadraA = document.getElementById('squadraA').value.trim();
