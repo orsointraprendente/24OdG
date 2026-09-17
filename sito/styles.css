@@ -123,9 +123,8 @@ h1.headline{
 
 .skyfield{position:relative;height:340px;}
 .sun{
-  position:absolute;top:-40px;right:10%;width:190px;height:190px;border-radius:50%;
-  background:radial-gradient(circle at 38% 32%, var(--gold-soft), var(--gold) 55%, #b9812f 100%);
-  box-shadow:0 0 70px 10px rgba(227,179,77,0.25);
+  position:absolute;top:-10px;right:12%;width:260px;height:auto;
+  filter:drop-shadow(0 0 45px rgba(227,179,77,0.35));
 }
 .horizon{position:absolute;left:0;right:0;bottom:70px;height:1px;background:var(--line);}
 .star{position:absolute;background:var(--cream);border-radius:50%;opacity:0.85;}
