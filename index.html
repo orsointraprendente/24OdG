@@ -1146,6 +1146,23 @@
                 doc.line(20, 275, 190, 275);
                 doc.text(`Generato da 24OdG - Torneo Arbitri | Pagina ${i} di ${tot}`, 105, 281, {align:'center'});
             }
+            
+            // Prova a caricare i loghi nel PDF
+const caricaLogoPerPDF = async (nomeSquadra, x, y) => {
+    try {
+        const url  = this.logoSquadra(nomeSquadra);
+        const resp = await fetch(url);
+        if (!resp.ok) return;
+        const blob   = await resp.blob();
+        const reader = new FileReader();
+        await new Promise(res => { reader.onload = res; reader.readAsDataURL(blob); });
+        doc.addImage(reader.result, 'PNG', x, y, 15, 15);
+    } catch(e) { /* logo non disponibile, si ignora */ }
+};
+
+await caricaLogoPerPDF(p.squadraA, 20, 108);
+await caricaLogoPerPDF(p.squadraB, 110, 108);
+
             doc.save(`referto_${p.squadraA}_vs_${p.squadraB}_${new Date().toLocaleDateString('it-IT')}.pdf`);
         },
 
