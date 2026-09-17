@@ -183,9 +183,27 @@
         // PARTE 2 — LOGICA APPLICAZIONE
         // =============================================================
 
-        /* ----------------------------------------------------------------
+        // ----------------------------------------------------------------
+        // HELPER LOGHI
+        // ----------------------------------------------------------------
+
+        logoSquadra(nomeSquadra) {
+            const nomeFile = encodeURIComponent(nomeSquadra);
+            return `${SUPABASE_URL}/storage/v1/object/public/loghi/${nomeFile}.png`;
+        },
+
+        imgLogo(nomeSquadra, classi = 'w-8 h-8 object-contain rounded') {
+            const url = this.logoSquadra(nomeSquadra);
+            return `<img src="${url}" alt="${nomeSquadra}" class="${classi}" onerror="this.style.display='none'">`;
+        },
+
+        // ----------------------------------------------------------------
+
+     
            2A — AUTENTICAZIONE
            ---------------------------------------------------------------- */
+
+
 
         async init() {
             const arbitri      = await this.caricaArbitri();
@@ -1419,7 +1437,10 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             ${lista.map(nome => `
                                 <div class="bg-gray-700 rounded-lg p-4">
-                                    <h3 class="font-bold text-lg text-cyan-300 mb-3">${nome}</h3>
+                                    <div class="flex items-center gap-3 mb-3">
+                                    ${this.imgLogo(nome, 'w-10 h-10 object-contain rounded-lg bg-gray-600 p-1')}
+                                    <h3 class="font-bold text-lg text-cyan-300">${nome}</h3>
+                                    </div>
                                     <div class="space-y-1 max-h-48 overflow-y-auto">
                                         ${this.squadre[nome].map(g => `
                                             <div class="text-sm bg-gray-600 rounded px-2 py-1">
@@ -1676,7 +1697,13 @@
                         <div class="flex justify-between items-start mb-4 flex-wrap gap-4">
                             <div>
                                 <h1 class="text-2xl font-bold">Campo ${p.campo} • ${p.orario}</h1>
-                                <p class="text-gray-400 mt-1">${p.squadraA} vs ${p.squadraB}</p>
+                                <p class="text-gray-400 mt-1 flex items-center gap-2">
+    ${this.imgLogo(p.squadraA, 'w-6 h-6 object-contain')}
+    ${p.squadraA}
+    <span class="text-gray-600">vs</span>
+    ${p.squadraB}
+    ${this.imgLogo(p.squadraB, 'w-6 h-6 object-contain')}
+</p>
                                 ${p.arbitroAssegnato ? `<p class="text-blue-400 text-sm mt-1">👤 Arbitro: ${p.arbitroAssegnato}</p>` : ''}
                             </div>
                             <div>
