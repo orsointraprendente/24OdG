@@ -149,7 +149,11 @@
                                 <div class="text-xs text-gray-500 mb-3">Campo ${p.campo} ${p.timer_tempo >= 3 ? `• <span class="text-yellow-500">${p.timer_tempo === 3 ? 'Silver Meta' : 'Golden Meta'}</span>` : ''}</div>
                                 <div class="flex items-center justify-between gap-3">
                                     <div class="flex-1 text-right">
-                                        <span class="font-bold ${vincitore === 'a' ? 'text-white text-lg' : 'text-gray-400'}">${p.squadra_a}</span>
+                                        <div class="flex items-center justify-end gap-2">
+    <span class="font-bold ${vincitore === 'a' ? 'text-white text-lg' : 'text-gray-400'}">${p.squadra_a}</span>
+    <img src="${SUPABASE_URL}/storage/v1/object/public/loghi/${encodeURIComponent(p.squadra_a)}.png"
+         class="w-8 h-8 object-contain rounded" onerror="this.style.display='none'">
+</div>
                                     </div>
                                     <div class="flex items-center gap-2 text-2xl font-black font-mono">
                                         <span class="${vincitore === 'a' ? 'text-cyan-400' : 'text-gray-300'}">${p.punteggio_a}</span>
@@ -157,7 +161,11 @@
                                         <span class="${vincitore === 'b' ? 'text-cyan-400' : 'text-gray-300'}">${p.punteggio_b}</span>
                                     </div>
                                     <div class="flex-1">
-                                        <span class="font-bold ${vincitore === 'b' ? 'text-white text-lg' : 'text-gray-400'}">${p.squadra_b}</span>
+                                        <div class="flex items-center gap-2">
+    <img src="${SUPABASE_URL}/storage/v1/object/public/loghi/${encodeURIComponent(p.squadra_b)}.png"
+         class="w-8 h-8 object-contain rounded" onerror="this.style.display='none'">
+    <span class="font-bold ${vincitore === 'b' ? 'text-white text-lg' : 'text-gray-400'}">${p.squadra_b}</span>
+</div>
                                     </div>
                                 </div>
                                 ${(p.mvp_a || p.mvp_b) ? `
