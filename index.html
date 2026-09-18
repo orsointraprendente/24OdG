@@ -197,11 +197,9 @@
             return `<img src="${url}" alt="${nomeSquadra}" class="${classi}" onerror="this.style.display='none'">`;
         },
 
+       // ----------------------------------------------------------------
+        // 2A — AUTENTICAZIONE
         // ----------------------------------------------------------------
-
-     
-           2A — AUTENTICAZIONE
-           ---------------------------------------------------------------- */
 
 
 
@@ -1053,7 +1051,7 @@
            2L — PDF REFERTO DETTAGLIATO
            ---------------------------------------------------------------- */
 
-        generaPDF(id) {
+        async generaPDF(id) {
             const p = this.partite.find(x => x.id === id);
             if (!p) return;
             const { jsPDF } = window.jspdf;
