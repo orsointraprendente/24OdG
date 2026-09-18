@@ -189,7 +189,7 @@
 
         logoSquadra(nomeSquadra) {
             const nomeFile = encodeURIComponent(nomeSquadra);
-            return `${SUPABASE_URL}/storage/v1/object/public/loghi/${nomeFile}.svg`;
+            return `${SUPABASE_URL}/storage/v1/object/public/loghi/${nomeFile}.png`;
         },
 
         imgLogo(nomeSquadra, classi = 'w-8 h-8 object-contain rounded') {
@@ -1154,7 +1154,7 @@ const caricaLogoPerPDF = async (nomeSquadra, x, y) => {
         const blob   = await resp.blob();
         const reader = new FileReader();
         await new Promise(res => { reader.onload = res; reader.readAsDataURL(blob); });
-        doc.addImage(reader.result, 'SVG', x, y, 15, 15);
+        doc.addImage(reader.result, 'PNG', x, y, 15, 15);
     } catch(e) { /* logo non disponibile, si ignora */ }
 };
 
