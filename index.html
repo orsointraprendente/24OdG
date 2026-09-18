@@ -1133,7 +1133,7 @@
             };
 
             doc.setFontSize(13); doc.setTextColor(14,116,144);
-            doc.text(p.squadraA, 20, 115); doc.text(p.squadraB, 110, 115);
+            doc.text(p.squadraA, 38, 118); doc.text(p.squadraB, 110, 118);
 
             stampaColonna(p.golA, p.scalpiA, p.vuotiA, p.cartelliniA, p.mvpA, 20,  25,  125);
             stampaColonna(p.golB, p.scalpiB, p.vuotiB, p.cartelliniB, p.mvpB, 110, 115, 125);
@@ -1159,7 +1159,7 @@ const caricaLogoPerPDF = async (nomeSquadra, x, y) => {
 };
 
 await caricaLogoPerPDF(p.squadraA, 20, 108);
-await caricaLogoPerPDF(p.squadraB, 110, 108);
+await caricaLogoPerPDF(p.squadraB, 175, 108);
 
             doc.save(`referto_${p.squadraA}_vs_${p.squadraB}_${new Date().toLocaleDateString('it-IT')}.pdf`);
         },
@@ -1400,9 +1400,15 @@ await caricaLogoPerPDF(p.squadraB, 110, 108);
                                 <div class="flex items-center justify-between mb-3">
                                     <div class="flex-1">
                                         <div class="text-lg font-bold">
-                                            <span class="text-cyan-300">${p.squadraA}</span>
-                                            <span class="text-gray-500 mx-2">vs</span>
-                                            <span class="text-cyan-300">${p.squadraB}</span>
+                                            <span class="flex items-center gap-1">
+    ${this.imgLogo(p.squadraA, 'w-5 h-5 object-contain')}
+    <span class="text-cyan-300">${p.squadraA}</span>
+</span>
+<span class="text-gray-500 mx-2">vs</span>
+<span class="flex items-center gap-1">
+    <span class="text-cyan-300">${p.squadraB}</span>
+    ${this.imgLogo(p.squadraB, 'w-5 h-5 object-contain')}
+</span>
                                             ${punteggioInCorso}
                                         </div>
                                         ${p.completata
@@ -1488,7 +1494,12 @@ await caricaLogoPerPDF(p.squadraB, 110, 108);
                                     const dr = s.gf - s.gs;
                                     return `<tr class="border-t border-gray-700 ${i<3?'bg-green-900 bg-opacity-20':''}">
                                         <td class="px-4 py-3 font-bold ${i===0?'text-yellow-400':i===1?'text-gray-300':i===2?'text-orange-400':'text-gray-400'}">${i+1}</td>
-                                        <td class="px-4 py-3 font-semibold">${s.nome}</td>
+                                        <td class="px-4 py-3 font-semibold">
+    <div class="flex items-center gap-2">
+        ${this.imgLogo(s.nome, 'w-6 h-6 object-contain rounded')}
+        ${s.nome}
+    </div>
+</td>
                                         <td class="px-4 py-3 text-center font-bold text-cyan-400">${s.punti}</td>
                                         <td class="px-4 py-3 text-center">${s.giocate}</td>
                                         <td class="px-4 py-3 text-center text-green-400">${s.vinte}</td>
