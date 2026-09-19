@@ -541,7 +541,7 @@
                 });
                 return {
                     marcatori: Object.entries(m).map(([nome, gol]) => ({ nome, gol })).sort((a, b) => b.gol - a.gol),
-                    scalpiatori: Object.entries(s).map(([nome, scalpi]) => ({ nome, scalpi })).sort((a, b) => b.scalpi - a.scalpi),
+                    scalpatori: Object.entries(s).map(([nome, scalpi]) => ({ nome, scalpi })).sort((a, b) => b.scalpi - a.scalpi),
                     vuotatori: Object.entries(v).map(([nome, vuoti]) => ({ nome, vuoti })).sort((a, b) => b.vuoti - a.vuoti),
                     mvps: Object.entries(mvps).map(([nome, volte]) => ({ nome, volte })).sort((a, b) => b.volte - a.volte)
                 };
@@ -1132,8 +1132,8 @@
                             ${renderLista('Marcatori', '⚽', stats.marcatori, 'bg-cyan-900 text-cyan-300')}
                         </div>
                         <div class="bg-gray-800 rounded-lg p-6 shadow-xl border border-gray-700">
-                            <h2 class="text-xl font-semibold mb-4 text-cyan-400">🔪 Scalpi (${stats.scalpiatori.length})</h2>
-                            ${renderLista('Scalpi', '🔪', stats.scalpiatori, 'bg-red-900 text-red-300')}
+                            <h2 class="text-xl font-semibold mb-4 text-cyan-400">🔪 Scalpi (${stats.scalpatori.length})</h2>
+                            ${renderLista('Scalpi', '🔪', stats.scalpatori, 'bg-red-900 text-red-300')}
                         </div>
                         <div class="bg-gray-800 rounded-lg p-6 shadow-xl border border-gray-700">
                             <h2 class="text-xl font-semibold mb-4 text-cyan-400">🔵 Vuoti (${stats.vuotatori.length})</h2>
