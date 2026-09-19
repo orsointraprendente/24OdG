@@ -1059,8 +1059,333 @@ const TELEGRAM_CHAT_ID = '1920982994';
            ---------------------------------------------------------------- */
 
 
+async generaPDF(id, soloBlob = false) {
+
+    const p = this.partite.find(x => x.id === id);
+
+    if (!p) return;
+
+    const { jsPDF } = window.jspdf;
+
+    const doc = new jsPDF();
+
+
+
+    // ── Helper: aggiunge pagina se necessario e restituisce la y corrente ──
+
+    const check = (y, spazio = 10) => {
+
+        if (y + spazio > 270) {
+
+            doc.addPage();
+
+            doc.setFontSize(8); doc.setTextColor(150,150,150);
+
+            doc.text(`${p.squadraA} vs ${p.squadraB} - continua`, 105, 10, { align: 'center' });
+
+            doc.setTextColor(0,0,0);
+
+            return 20;
+
+        }
+
+        return y;
+
+    };
+
+
+
+    // ── Helper: riga di testo con y automatica ──
+
+    const riga = (testo, x, y, opzioni = {}) => {
+
+        doc.text(testo, x, y, opzioni);
+
+        return y + (opzioni.interlinea || 7);
+
+    };
+
+
+
+    let y = 15;
+
+
+
+    // ── 1. TITOLO ──
+
+    doc.setFontSize(18); doc.setTextColor(14,116,144);
+
+    y = riga('24OdG - REFERTO PARTITA', 105, y, { align: 'center' });
+
+    y += 3;
+
+
+
+    // ── 2. INFO PARTITA ──
+
+    doc.setFontSize(10); doc.setTextColor(80,80,80);
+
+    y = riga(`Campo: ${p.campo}  •  Orario: ${p.orario}  •  Data: ${new Date().toLocaleDateString('it-IT')}`, 20, y);
+
+    if (p.arbitroAssegnato) y = riga(`Arbitro: ${p.arbitroAssegnato}`, 20, y);
+
+    if (p.timerTempo >= 3) {
+
+        doc.setTextColor(180,130,0);
+
+        y = riga(`Supplementari: ${p.timerTempo === 3 ? 'Silver Meta' : 'Golden Meta'}`, 20, y);
+
+        doc.setTextColor(80,80,80);
+
+    }
+
+ 
+
+    y += 2;
+
+
+
+    // ── 3. LINEA ──
+
+    doc.setDrawColor(14,116,144); doc.line(20, y, 190, y); y += 8;
+
+
+
+    // ── 4. LOGHI + NOMI SQUADRE + RISULTATO ──
+
+    const yBloccoRisultato = y;
+
+
+
+    // Loghi (caricati in parallelo)
+
+    const caricaLogo = async (nome, x, yPos) => {
+
+        try {
+
+            const url  = this.logoSquadra(nome);
+
+            const resp = await fetch(url);
+
+            if (!resp.ok) return;
+
+            const blob   = await resp.blob();
+
+            const reader = new FileReader();
+
+            await new Promise(res => { reader.onload = res; reader.readAsDataURL(blob); });
+
+            doc.addImage(reader.result, 'PNG', x, yPos, 14, 14);
+
+        } catch(e) { /* logo non disponibile */ }
+
+    };
+
+    await Promise.all([
+
+        caricaLogo(p.squadraA, 20, yBloccoRisultato),
+
+        caricaLogo(p.squadraB, 176, yBloccoRisultato),
+
+    ]);
+
+
+
+    // Nomi squadre
+
+    doc.setFontSize(13); doc.setTextColor(14,116,144);
+
+    doc.text(p.squadraA, 36, yBloccoRisultato + 9);
+
+    doc.text(p.squadraB, 174, yBloccoRisultato + 9, { align: 'right' });
+
+
+
+    // Risultato al centro
+
+    doc.setFontSize(24); doc.setTextColor(180,130,0);
+
+    doc.text(`${p.punteggioA}  -  ${p.punteggioB}`, 105, yBloccoRisultato + 9, { align: 'center' });
+
+
+
+    y = yBloccoRisultato + 18;
+
+    y += 2;
+
+
 riga(`Vuoti sq.: ${p.vuotiSquadraA}   Falli difesa: ${p.falliDifesaA}`, 20, y);
 y = riga(`Vuoti sq.: ${p.vuotiSquadraB}   Falli difesa: ${p.falliDifesaB}`, 110, y);
+
+    y += 4;
+
+
+
+    // ── 5. LINEA ──
+
+    doc.setDrawColor(14,116,144); doc.line(20, y, 190, y); y += 8;
+
+
+
+    // ── 6. CONTENUTO SQUADRE (colonne dinamiche) ──
+
+    // Raccoglie tutti gli eventi di una squadra in righe testo
+
+    const righeSquadra = (gol, scalpi, vuoti, cartellini, mvp) => {
+
+        const blocchi = [];
+
+
+
+        const golReali = gol.filter(ev => !this._nomeGiocatore(ev).includes('META'));
+
+        const mete     = gol.filter(ev =>  this._nomeGiocatore(ev).includes('META'));
+
+
+
+        const formatta = ev => {
+
+            const g   = this._nomeGiocatore(ev);
+
+            const min = (typeof ev === 'object' && ev.minuto) ? ` [${ev.minuto} T${ev.tempo}]` : '';
+
+            return g + min;
+
+        };
+
+
+
+        if (golReali.length)    blocchi.push({ titolo: `Gol (${golReali.length})`,       righe: golReali.map(formatta) });
+
+        if (mete.length)        blocchi.push({ titolo: `Mete (${mete.length})`,           righe: mete.map(formatta) });
+
+        if (scalpi.length)      blocchi.push({ titolo: `Scalpi (${scalpi.length})`,       righe: scalpi.map(formatta) });
+
+        if (vuoti.length)       blocchi.push({ titolo: `Vuoti (${vuoti.length})`,         righe: vuoti.map(formatta) });
+
+        if (cartellini.length)  blocchi.push({ titolo: `Cartellini (${cartellini.length})`, righe: cartellini.map(c => {
+
+            const s = c.tipo==='giallo'?'[G]':c.tipo==='rosso'?'[R]':'[N]';
+
+            const min = c.minuto ? ` [${c.minuto} T${c.tempo}]` : '';
+
+            return `${s} ${c.giocatore}${min}`;
+
+        })});
+
+        if (mvp) blocchi.push({ titolo: `MVP`, righe: [mvp], mvp: true });
+
+
+
+        return blocchi;
+
+    };
+
+
+
+    const blocchiA = righeSquadra(p.golA, p.scalpiA, p.vuotiA, p.cartelliniA, p.mvpA);
+
+    const blocchiB = righeSquadra(p.golB, p.scalpiB, p.vuotiB, p.cartelliniB, p.mvpB);
+
+    const maxBlocchi = Math.max(blocchiA.length, blocchiB.length);
+
+
+
+    // Stampa i blocchi affiancati, blocco per blocco, riga per riga
+
+    // Così se un blocco è più lungo dell'altro, la y avanza insieme
+
+    for (let b = 0; b < maxBlocchi; b++) {
+
+        const bA = blocchiA[b];
+
+        const bB = blocchiB[b];
+
+        const maxRighe = Math.max(bA ? bA.righe.length + 1 : 0, bB ? bB.righe.length + 1 : 0);
+
+
+
+        y = check(y, maxRighe * 6 + 4);
+
+
+
+        // Titolo blocco
+
+        doc.setFontSize(9);
+
+        if (bA) {
+
+            doc.setFont(undefined, 'bold');
+
+            doc.setTextColor(bA.mvp ? 100 : 0, bA.mvp ? 50 : 0, bA.mvp ? 180 : 0);
+
+            doc.text(bA.titolo, 20, y);
+
+        }
+
+        if (bB) {
+
+            doc.setFont(undefined, 'bold');
+
+            doc.setTextColor(bB.mvp ? 100 : 0, bB.mvp ? 50 : 0, bB.mvp ? 180 : 0);
+
+            doc.text(bB.titolo, 110, y);
+
+        }
+
+        doc.setFont(undefined, 'normal'); doc.setTextColor(0,0,0);
+
+        y += 6;
+
+
+
+        // Righe del blocco
+
+        const maxR = Math.max(bA ? bA.righe.length : 0, bB ? bB.righe.length : 0);
+
+        for (let r = 0; r < maxR; r++) {
+
+            y = check(y, 6);
+
+            doc.setFontSize(8.5);
+
+            if (bA && bA.righe[r]) doc.text(`  ${bA.righe[r]}`, 20, y);
+
+            if (bB && bB.righe[r]) doc.text(`  ${bB.righe[r]}`, 110, y);
+
+            y += 5.5;
+
+        }
+
+        y += 3; // spazio tra blocchi
+
+    }
+
+
+
+    // ── 7. FOOTER su tutte le pagine ──
+
+    const tot = doc.internal.getNumberOfPages();
+
+    for (let i = 1; i <= tot; i++) {
+
+        doc.setPage(i);
+
+        doc.setFontSize(8); doc.setTextColor(150,150,150);
+
+        doc.line(20, 280, 190, 280);
+
+        doc.text(`Generato da 24OdG - Torneo Arbitri | Pagina ${i} di ${tot}`, 105, 286, { align: 'center' });
+
+    }
+
+
+
+    if (soloBlob) return doc.output('blob');
+
+    doc.save(`referto_${p.squadraA}_vs_${p.squadraB}_${new Date().toLocaleDateString('it-IT')}.pdf`);
+
+}, 
           
           /* ----------------------------------------------------------------
            2M — TELEGRAM
