@@ -1058,6 +1058,7 @@ const TELEGRAM_CHAT_ID = '1920982994';
            2L — PDF REFERTO DETTAGLIATO
            ---------------------------------------------------------------- */
 
+
 async generaPDF(id, soloBlob = false) {
     const p = this.partite.find(x => x.id === id);
     if (!p) return;
@@ -1098,8 +1099,7 @@ async generaPDF(id, soloBlob = false) {
         y = riga(`Supplementari: ${p.timerTempo === 3 ? 'Silver Meta' : 'Golden Meta'}`, 20, y);
         doc.setTextColor(80,80,80);
     }
-    y = riga(`Vuoti sq. ${p.squadraA}: ${p.vuotiSquadraA}  |  Falli difesa: ${p.falliDifesaA}`, 20, y);
-    y = riga(`Vuoti sq. ${p.squadraB}: ${p.vuotiSquadraB}  |  Falli difesa: ${p.falliDifesaB}`, 20, y);
+ 
     y += 2;
 
     // ── 3. LINEA ──
@@ -1135,6 +1135,9 @@ async generaPDF(id, soloBlob = false) {
     doc.text(`${p.punteggioA}  -  ${p.punteggioB}`, 105, yBloccoRisultato + 9, { align: 'center' });
 
     y = yBloccoRisultato + 18;
+    y += 2;
+
+       y = riga(`Vuoti sq.: ${p.vuotiSquadraA}   Falli difesa: ${p.falliDifesaA}`, 20, y)    |||   (`Vuoti sq.: ${p.vuotiSquadraB}  |  Falli difesa: ${p.falliDifesaB}`, 20, y);
     y += 4;
 
     // ── 5. LINEA ──
@@ -1220,6 +1223,7 @@ async generaPDF(id, soloBlob = false) {
     if (soloBlob) return doc.output('blob');
     doc.save(`referto_${p.squadraA}_vs_${p.squadraB}_${new Date().toLocaleDateString('it-IT')}.pdf`);
 },
+
           
           /* ----------------------------------------------------------------
            2M — TELEGRAM
