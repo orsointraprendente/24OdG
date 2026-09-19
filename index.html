@@ -1017,7 +1017,7 @@ const TELEGRAM_CHAT_ID = '1920982994';
                 });
             });
             const parse = (obj, campo) => Object.entries(obj).map(([k, n]) => { const [nome, sq] = k.split('||'); return { nome, squadra: sq, [campo]: n }; }).sort((a,b) => b[campo]-a[campo]);
-            return { marcatori: parse(m,'gol'), scalpiatori: parse(s,'scalpi'), mvps: parse(mvps,'volte') };
+            return { marcatori: parse(m,'gol'), scalpatori: parse(s,'scalpi'), mvps: parse(mvps,'volte') };
         },
 
         /* ----------------------------------------------------------------
@@ -1810,8 +1810,8 @@ async inviaRefertoTelegram(id) {
                         ${lista(stats.marcatori,'gol','bg-cyan-900 text-cyan-300')}
                     </div>
                     <div class="bg-gray-800 rounded-lg p-6 shadow-xl border border-gray-700">
-                        <h2 class="text-xl font-semibold mb-4 text-cyan-400">🔪 Scalpiatori (${stats.scalpiatori.length})</h2>
-                        ${lista(stats.scalpiatori,'scalpi','bg-red-900 text-red-300')}
+                        <h2 class="text-xl font-semibold mb-4 text-cyan-400">🔪 Scalpatori (${stats.scalpatori.length})</h2>
+                        ${lista(stats.scalpatori,'scalpi','bg-red-900 text-red-300')}
                     </div>
                     <div class="bg-gray-800 rounded-lg p-6 shadow-xl border border-gray-700 md:col-span-2">
                         <h2 class="text-xl font-semibold mb-4 text-cyan-400">⭐ MVP (${stats.mvps.length})</h2>
