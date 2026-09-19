@@ -1054,156 +1054,123 @@ const TELEGRAM_CHAT_ID = '1920982994';
             } catch (e) { alert('Errore: ' + e.message); }
         },
 
-     /* ----------------------------------------------------------------
+      /* ----------------------------------------------------------------
            2L — PDF REFERTO DETTAGLIATO
            ---------------------------------------------------------------- */
 
-          
-async generaPDF(id, soloBlob = false) {
-    const p = this.partite.find(x => x.id === id);
-    if (!p) return;
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+        async generaPDF(id, soloBlob = false) {
+            const p = this.partite.find(x => x.id === id);
+            if (!p) return;
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
 
-    const nuovaPagina = (y) => {
-        if (y > 265) {
-            doc.addPage();
-            doc.setFontSize(9); doc.setTextColor(150,150,150);
-            doc.text(`${p.squadraA} vs ${p.squadraB} - continua`, 105, 12, { align: 'center' });
-            doc.setFontSize(10); doc.setTextColor(0,0,0);
-            return 25;
-        }
-        return y;
-    };
+            const nuovaPagina = (y) => {
+                if (y > 265) {
+                    doc.addPage();
+                    doc.setFontSize(9); doc.setTextColor(150,150,150);
+                    doc.text(`${p.squadraA} vs ${p.squadraB} - continua`, 105, 12, { align: 'center' });
+                    doc.setFontSize(10); doc.setTextColor(0,0,0);
+                    return 25;
+                }
+                return y;
+            };
 
-    // 1. Header: Info Generali Partita
-    doc.setFontSize(20); doc.setTextColor(14,116,144);
-    doc.text('24OdG - REFERTO PARTITA', 105, 20, { align: 'center' });
-    
-    doc.setFontSize(11); doc.setTextColor(0,0,0);
-    doc.text(`Campo: ${p.campo}`, 20, 32);
-    doc.text(`Orario: ${p.orario}`, 20, 39);
-    doc.text(`Data: ${new Date().toLocaleDateString('it-IT')}`, 20, 46);
-    
-    let yHeader = 46;
-    if (p.timerTempo >= 3) { 
-        yHeader += 7;
-        doc.setTextColor(180,130,0); 
-        doc.text(`Supplementari: ${p.timerTempo===3?'Silver Meta':'Golden Meta'}`, 20, yHeader); 
-        doc.setTextColor(0,0,0); 
-    }
-    if (p.arbitroAssegnato) {
-        yHeader += 7;
-        doc.text(`Arbitro: ${p.arbitroAssegnato}`, 20, yHeader);
-    }
+            // Header
+            doc.setFontSize(20); doc.setTextColor(14,116,144);
+            doc.text('24OdG - REFERTO PARTITA', 105, 20, { align: 'center' });
+            doc.setFontSize(11); doc.setTextColor(0,0,0);
+            doc.text(`Campo: ${p.campo}`, 20, 35);
+            doc.text(`Orario: ${p.orario}`, 20, 42);
+            if (p.timerTempo >= 3) { doc.setTextColor(180,130,0); doc.text(`Supplementari: ${p.timerTempo===3?'Silver Meta':'Golden Meta'}`, 20, 49); doc.setTextColor(0,0,0); }
+            doc.text(`Data: ${new Date().toLocaleDateString('it-IT')}`, 20, 49);
+            if (p.arbitroAssegnato) doc.text(`Arbitro: ${p.arbitroAssegnato}`, 20, 56);
+            doc.text(`Vuoti sq. ${p.squadraA}: ${p.vuotiSquadraA} | Falli difesa: ${p.falliDifesaA}`, 20, 63);
+            doc.text(`Vuoti sq. ${p.squadraB}: ${p.vuotiSquadraB} | Falli difesa: ${p.falliDifesaB}`, 20, 70);
+            doc.setDrawColor(14,116,144); doc.line(20, 75, 190, 75);
 
-    doc.setDrawColor(14,116,144); 
-    doc.line(20, yHeader + 5, 190, yHeader + 5);
+            // Risultato
+            doc.setFontSize(16); doc.setTextColor(0,0,0);
+            doc.text(p.squadraA, 20, 87); doc.text('vs', 100, 87, {align:'center'}); doc.text(p.squadraB, 190, 87, {align:'right'});
+            if (p.completata) { doc.setFontSize(28); doc.setTextColor(180,130,0); doc.text(`${p.punteggioA}  -  ${p.punteggioB}`, 105, 100, {align:'center'}); }
+            doc.setDrawColor(14,116,144); doc.line(20, 105, 190, 105);
 
-    // 2. Risultato e Squadre
-    let yRisultato = yHeader + 18;
-    doc.setFontSize(16); doc.setTextColor(0,0,0);
-    doc.text(p.squadraA, 20, yRisultato); 
-    doc.text('vs', 100, yRisultato, {align:'center'}); 
-    doc.text(p.squadraB, 190, yRisultato, {align:'right'});
+            // Helper colonna
+            const stampaColonna = (eventi_gol, scalpi, vuoti_arr, cartellini, mvp, xBase, xRientro, yInizio) => {
+                doc.setFontSize(10); doc.setTextColor(0,0,0);
+                let y = yInizio;
 
-    if (p.completata) { 
-        doc.setFontSize(28); 
-        doc.setTextColor(180,130,0); 
-        doc.text(`${p.punteggioA}  -  ${p.punteggioB}`, 105, yRisultato + 13, {align:'center'}); 
-        yRisultato += 13;
-    }
+                const golReali = eventi_gol.filter(ev => !this._nomeGiocatore(ev).includes('META'));
+                const mete     = eventi_gol.filter(ev =>  this._nomeGiocatore(ev).includes('META'));
 
-    doc.setDrawColor(14,116,144); 
-    doc.line(20, yRisultato + 8, 190, yRisultato + 8);
+                const stampaLista = (titolo, lista, formatta) => {
+                    if (lista.length === 0) return;
+                    y = nuovaPagina(y);
+                    doc.setFont(undefined,'bold'); doc.text(`${titolo} (${lista.length}):`, xBase, y); doc.setFont(undefined,'normal'); y += 7;
+                    lista.forEach(ev => { y = nuovaPagina(y); doc.text(`  ${formatta(ev)}`, xRientro, y); y += 6; }); y += 3;
+                };
 
-    // 3. Vuoti e Falli Difesa (Sotto il risultato)
-    let yFalli = yRisultato + 18;
-    doc.setFontSize(10); doc.setTextColor(0,0,0);
-    doc.text(`Vuoti sq. ${p.squadraA}: ${p.vuotiSquadraA} | Falli difesa: ${p.falliDifesaA}`, 20, yFalli);
-    doc.text(`Vuoti sq. ${p.squadraB}: ${p.vuotiSquadraB} | Falli difesa: ${p.falliDifesaB}`, 20, yFalli + 7);
+                stampaLista('Gol',    golReali,  ev => { const min = (typeof ev==='object'&&ev.minuto) ? ` [${ev.minuto} T${ev.tempo}]` : ''; return `${this._nomeGiocatore(ev)}${min}`; });
+                stampaLista('Mete',   mete,      ev => { const min = (typeof ev==='object'&&ev.minuto) ? ` [${ev.minuto}]` : ''; return `${this._nomeGiocatore(ev)}${min}`; });
+                stampaLista('Scalpi', scalpi,    ev => { const min = (typeof ev==='object'&&ev.minuto) ? ` [${ev.minuto} T${ev.tempo}]` : ''; return `${this._nomeGiocatore(ev)}${min}`; });
 
-    // Helper colonna
-    const stampaColonna = (eventi_gol, scalpi, vuoti_arr, cartellini, mvp, xBase, xRientro, yInizio) => {
-        doc.setFontSize(10); doc.setTextColor(0,0,0);
-        let y = yInizio;
+                // Vuoti con minuto
+                if (vuoti_arr.length > 0) {
+                    y = nuovaPagina(y);
+                    doc.setFont(undefined,'bold'); doc.text(`Vuoti (${vuoti_arr.length}):`, xBase, y); doc.setFont(undefined,'normal'); y += 7;
+                    vuoti_arr.forEach(ev => {
+                        y = nuovaPagina(y);
+                        const min = (typeof ev==='object'&&ev.minuto) ? ` [${ev.minuto} T${ev.tempo}]` : '';
+                        doc.text(`  ${this._nomeGiocatore(ev)}${min}`, xRientro, y); y += 6;
+                    }); y += 3;
+                }
 
-        const golReali = eventi_gol.filter(ev => !this._nomeGiocatore(ev).includes('META'));
-        const mete     = eventi_gol.filter(ev =>  this._nomeGiocatore(ev).includes('META'));
+                // Cartellini
+                if (cartellini.length > 0) {
+                    y = nuovaPagina(y);
+                    doc.setFont(undefined,'bold'); doc.text(`Cartellini (${cartellini.length}):`, xBase, y); doc.setFont(undefined,'normal'); y += 7;
+                    cartellini.forEach(c => {
+                        y = nuovaPagina(y);
+                        const simbolo = c.tipo==='giallo'?'[G]':c.tipo==='rosso'?'[R]':'[N]';
+                        const min     = c.minuto ? ` [${c.minuto} T${c.tempo}]` : '';
+                        doc.text(`  ${simbolo} ${c.giocatore}${min}`, xRientro, y); y += 6;
+                    }); y += 3;
+                }
 
-        const stampaLista = (titolo, lista, formatta) => {
-            if (lista.length === 0) return;
-            y = nuovaPagina(y);
-            doc.setFont(undefined,'bold'); doc.text(`${titolo} (${lista.length}):`, xBase, y); doc.setFont(undefined,'normal'); y += 7;
-            lista.forEach(ev => { y = nuovaPagina(y); doc.text(`  ${formatta(ev)}`, xRientro, y); y += 6; }); y += 3;
-        };
+                if (mvp) { y = nuovaPagina(y); doc.setFont(undefined,'bold'); doc.setTextColor(100,50,180); doc.text(`MVP: ${mvp}`, xBase, y); doc.setFont(undefined,'normal'); doc.setTextColor(0,0,0); }
+            };
 
-        stampaLista('Gol',    golReali,  ev => { const min = (typeof ev==='object'&&ev.minuto) ? ` [${ev.minuto} T${ev.tempo}]` : ''; return `${this._nomeGiocatore(ev)}${min}`; });
-        stampaLista('Mete',   mete,      ev => { const min = (typeof ev==='object'&&ev.minuto) ? ` [${ev.minuto}]` : ''; return `${this._nomeGiocatore(ev)}${min}`; });
-        stampaLista('Scalpi', scalpi,    ev => { const min = (typeof ev==='object'&&ev.minuto) ? ` [${ev.minuto} T${ev.tempo}]` : ''; return `${this._nomeGiocatore(ev)}${min}`; });
+            doc.setFontSize(13); doc.setTextColor(14,116,144);
+            doc.text(p.squadraA, 38, 118); doc.text(p.squadraB, 110, 118);
 
-        // Vuoti con minuto
-        if (vuoti_arr.length > 0) {
-            y = nuovaPagina(y);
-            doc.setFont(undefined,'bold'); doc.text(`Vuoti (${vuoti_arr.length}):`, xBase, y); doc.setFont(undefined,'normal'); y += 7;
-            vuoti_arr.forEach(ev => {
-                y = nuovaPagina(y);
-                const min = (typeof ev==='object'&&ev.minuto) ? ` [${ev.minuto} T${ev.tempo}]` : '';
-                doc.text(`  ${this._nomeGiocatore(ev)}${min}`, xRientro, y); y += 6;
-            }); y += 3;
-        }
+            stampaColonna(p.golA, p.scalpiA, p.vuotiA, p.cartelliniA, p.mvpA, 20,  25,  125);
+            stampaColonna(p.golB, p.scalpiB, p.vuotiB, p.cartelliniB, p.mvpB, 110, 115, 125);
 
-        // Cartellini
-        if (cartellini.length > 0) {
-            y = nuovaPagina(y);
-            doc.setFont(undefined,'bold'); doc.text(`Cartellini (${cartellini.length}):`, xBase, y); doc.setFont(undefined,'normal'); y += 7;
-            cartellini.forEach(c => {
-                y = nuovaPagina(y);
-                const simbolo = c.tipo==='giallo'?'[G]':c.tipo==='rosso'?'[R]':'[N]';
-                const min     = c.minuto ? ` [${c.minuto} T${c.tempo}]` : '';
-                doc.text(`  ${simbolo} ${c.giocatore}${min}`, xRientro, y); y += 6;
-            }); y += 3;
-        }
+            const tot = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= tot; i++) {
+                doc.setPage(i); doc.setFontSize(8); doc.setTextColor(150,150,150);
+                doc.line(20, 275, 190, 275);
+                doc.text(`Generato da 24OdG - Torneo Arbitri | Pagina ${i} di ${tot}`, 105, 281, {align:'center'});
+            }
+            
+            // Prova a caricare i loghi nel PDF
+const caricaLogoPerPDF = async (nomeSquadra, x, y) => {
+    try {
+        const url  = this.logoSquadra(nomeSquadra);
+        const resp = await fetch(url);
+        if (!resp.ok) return;
+        const blob   = await resp.blob();
+        const reader = new FileReader();
+        await new Promise(res => { reader.onload = res; reader.readAsDataURL(blob); });
+        doc.addImage(reader.result, 'PNG', x, y, 15, 15);
+    } catch(e) { /* logo non disponibile, si ignora */ }
+};
 
-        if (mvp) { y = nuovaPagina(y); doc.setFont(undefined,'bold'); doc.setTextColor(100,50,180); doc.text(`MVP: ${mvp}`, xBase, y); doc.setFont(undefined,'normal'); doc.setTextColor(0,0,0); }
-    };
+await caricaLogoPerPDF(p.squadraA, 20, 108);
+await caricaLogoPerPDF(p.squadraB, 175, 108);
 
-    // 4. Intestazioni colonne e dettaglio eventi
-    let yInizioColonne = yFalli + 18;
-    doc.setFontSize(13); doc.setTextColor(14,116,144);
-    doc.text(p.squadraA, 38, yInizioColonne); doc.text(p.squadraB, 110, yInizioColonne);
-
-    stampaColonna(p.golA, p.scalpiA, p.vuotiA, p.cartelliniA, p.mvpA, 20,  25,  yInizioColonne + 7);
-    stampaColonna(p.golB, p.scalpiB, p.vuotiB, p.cartelliniB, p.mvpB, 110, 115, yInizioColonne + 7);
-
-    // 5. Pie' di pagina
-    const tot = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= tot; i++) {
-        doc.setPage(i); doc.setFontSize(8); doc.setTextColor(150,150,150);
-        doc.line(20, 275, 190, 275);
-        doc.text(`Generato da 24OdG - Torneo Arbitri | Pagina ${i} di ${tot}`, 105, 281, {align:'center'});
-    }
-    
-    // 6. Caricamento Loghi
-    const caricaLogoPerPDF = async (nomeSquadra, x, y) => {
-        try {
-            const url  = this.logoSquadra(nomeSquadra);
-            const resp = await fetch(url);
-            if (!resp.ok) return;
-            const blob   = await resp.blob();
-            const reader = new FileReader();
-            await new Promise(res => { reader.onload = res; reader.readAsDataURL(blob); });
-            doc.addImage(reader.result, 'PNG', x, y, 15, 15);
-        } catch(e) { /* logo non disponibile, si ignora */ }
-    };
-
-    // I loghi vengono posizionati accanto all'intestazione delle colonne delle squadre
-    await caricaLogoPerPDF(p.squadraA, 20, yInizioColonne - 10);
-    await caricaLogoPerPDF(p.squadraB, 175, yInizioColonne - 10);
-
-    if (soloBlob) return doc.output('blob');
-    doc.save(`referto_${p.squadraA}_vs_${p.squadraB}_${new Date().toLocaleDateString('it-IT')}.pdf`);
-}
+            if (soloBlob) return doc.output('blob');
+doc.save(`referto_${p.squadraA}_vs_${p.squadraB}_${new Date().toLocaleDateString('it-IT')}.pdf`);
+        },
  /* ----------------------------------------------------------------
            2M — TELEGRAM
            ---------------------------------------------------------------- */
