@@ -1054,6 +1054,11 @@ const TELEGRAM_CHAT_ID = '1920982994';
             } catch (e) { alert('Errore: ' + e.message); }
         },
 
+     /* ----------------------------------------------------------------
+           2L — PDF REFERTO DETTAGLIATO
+           ---------------------------------------------------------------- */
+
+          
 async generaPDF(id, soloBlob = false) {
     const p = this.partite.find(x => x.id === id);
     if (!p) return;
