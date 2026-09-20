@@ -1217,14 +1217,14 @@ doc.setFontSize(11);
 doc.setFont(undefined, 'bold');
 doc.setTextColor(80, 80, 80);
 
-  const falliTotaliA = p.vuotiSquadraA >= 14 ? Math.floor((p.vuotiSquadraA - 14) / 3) + 1 : 0;
+const falliTotaliA = p.vuotiSquadraA >= 14 ? Math.floor((p.vuotiSquadraA - 14) / 3) + 1 : 0;
 const falliTotaliB = p.vuotiSquadraB >= 14 ? Math.floor((p.vuotiSquadraB - 14) / 3) + 1 : 0;
 
-  riga(`Vuoti sq.: ${p.vuotiSquadraA}   Falli difesa: ${p.falliDifesaA}`, 20, y);
-y = riga(`Vuoti sq.: ${p.vuotiSquadraB}   Falli difesa: ${p.falliDifesaB}`, 110, y);
+const yVuoti = y;
+riga(`Vuoti sq.: ${p.vuotiSquadraA}   Falli difesa: ${falliTotaliA}`, 20, yVuoti);
+y = riga(`Vuoti sq.: ${p.vuotiSquadraB}   Falli difesa: ${falliTotaliB}`, 110, yVuoti);
 
-    y += 4;
-
+y += 4;
 
 
     // ── 5. LINEA ──
