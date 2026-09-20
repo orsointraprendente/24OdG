@@ -390,6 +390,8 @@ const TELEGRAM_CHAT_ID = '1920982994';
                 arbitroAssegnato: row.arbitro_assegnato || '',
                 falliDifesaA:     row.falli_difesa_a    || 0,
                 falliDifesaB:     row.falli_difesa_b    || 0,
+                falliDifesaTotA:  row.falli_difesa_tot_a || 0,
+		falliDifesaTotB:  row.falli_difesa_tot_b || 0,
                 vuotiSquadraA:    row.vuoti_squadra_a   || 0,
                 vuotiSquadraB:    row.vuoti_squadra_b   || 0,
             };
@@ -473,6 +475,8 @@ const TELEGRAM_CHAT_ID = '1920982994';
                 if ('vuotiSquadraA'   in updates) db.vuoti_squadra_a   = u.vuotiSquadraA;
                 if ('vuotiSquadraB'   in updates) db.vuoti_squadra_b   = u.vuotiSquadraB;
                 if ('arbitroAssegnato' in updates) db.arbitro_assegnato = u.arbitroAssegnato;
+		if ('falliDifesaTotA' in updates) db.falli_difesa_tot_a = u.falliDifesaTotA;
+		if ('falliDifesaTotB' in updates) db.falli_difesa_tot_b = u.falliDifesaTotB;
 
                 const { error } = await supabase.from('partite').update(db).eq('id', id);
                 if (error) throw error;
@@ -497,6 +501,7 @@ const TELEGRAM_CHAT_ID = '1920982994';
                     mvp_a: u.mvpA, mvp_b: u.mvpB, completata: u.completata,
                     vuoti_squadra_a: u.vuotiSquadraA, vuoti_squadra_b: u.vuotiSquadraB,
                     falli_difesa_a: u.falliDifesaA, falli_difesa_b: u.falliDifesaB,
+		falli_difesa_tot_a: u.falliDifesaTotA, falli_difesa_tot_b: u.falliDifesaTotB,
                 }).eq('id', id);
             } catch (e) { console.error('Errore salvataggio asincrono:', e); }
         },
@@ -830,14 +835,16 @@ const TELEGRAM_CHAT_ID = '1920982994';
             if (nuoviVuotiSquadra === SOGLIA_FALLO_VUOTI ||
                (nuoviVuotiSquadra > SOGLIA_FALLO_VUOTI && (nuoviVuotiSquadra - SOGLIA_FALLO_VUOTI) % 3 === 0)) {
                 const nuoviFalli = p[`falliDifesa${squadra}`] + 1;
+updates[`falliDifesaTot${squadra}`] = (p[`falliDifesaTot${squadra}`] || 0) + 1;   // NUOVA
                 if (nuoviFalli === FALLI_PER_META) {
                     const opp = squadra === 'A' ? 'B' : 'A';
-                    const metaEv = { giocatore: 'METÀ (3° Fallo difesa)', minuto: this.formatoTempo(p.timerSecondi + (p.timerAttivo ? Math.floor((Date.now()-p.timerTimestamp)/1000) : 0)), tempo: p.timerTempo };
+                    const metaEv = { giocatore: 'META (3° Fallo difesa)', minuto: this.formatoTempo(p.timerSecondi + (p.timerAttivo ? Math.floor((Date.now()-p.timerTimestamp)/1000) : 0)), tempo: p.timerTempo };
+                   
                     const golOpposti = [...p[`gol${opp}`], metaEv];
                     updates[`falliDifesa${squadra}`] = 0;
                     updates[`gol${opp}`]   = golOpposti;
                     updates[`punteggio${opp}`] = golOpposti.length;
-                    messaggioFallo = `\n\n⚠️ ${nuoviVuotiSquadra}° VUOTO DI SQUADRA!\n3° FALLO DI DIFESA!\nMETÀ assegnata a ${p[`squadra${opp}`]}`;
+                    messaggioFallo = `\n\n⚠️ ${nuoviVuotiSquadra}° VUOTO DI SQUADRA!\n3° FALLO DI DIFESA!\nMETA assegnata a ${p[`squadra${opp}`]}`;
                 } else {
                     updates[`falliDifesa${squadra}`] = nuoviFalli;
                     messaggioFallo = `\n\n⚠️ ${nuoviVuotiSquadra}° VUOTO DI SQUADRA!\nFallo di difesa assegnato (${nuoviFalli}/3).`;
@@ -872,22 +879,28 @@ const TELEGRAM_CHAT_ID = '1920982994';
             this.render();
         },
 
-        async aggiungiFalloDifesa(id, squadra) {
+         async aggiungiFalloDifesa(id, squadra) {
             const p = this.partite.find(x => x.id === id);
             if (!p) return;
             const opp        = squadra === 'A' ? 'B' : 'A';
             const nuoviFalli = p[`falliDifesa${squadra}`] + 1;
+            const nuovoTot   = (p[`falliDifesaTot${squadra}`] || 0) + 1;
             if (nuoviFalli === FALLI_PER_META) {
-                const metaEv = { giocatore: 'METÀ (3° Fallo difesa)', minuto: this.formatoTempo(p.timerSecondi), tempo: p.timerTempo };
+                const metaEv = { giocatore: 'META (3° Fallo difesa)', minuto: this.formatoTempo(p.timerSecondi + (p.timerAttivo ? Math.floor((Date.now()-p.timerTimestamp)/1000) : 0)), tempo: p.timerTempo };
                 const golOpposti = [...p[`gol${opp}`], metaEv];
-                await this.aggiornaPartita(id, { [`falliDifesa${squadra}`]: 0, [`gol${opp}`]: golOpposti, [`punteggio${opp}`]: golOpposti.length });
-                alert(`⚠️ 3° FALLO DI DIFESA!\nMETÀ assegnata a ${p[`squadra${opp}`]}`);
+                await this.aggiornaPartita(id, {
+                    [`falliDifesa${squadra}`]: 0,
+                    [`falliDifesaTot${squadra}`]: nuovoTot,
+                    [`gol${opp}`]: golOpposti,
+                    [`punteggio${opp}`]: golOpposti.length
+                });
+                alert(`⚠️ 3° FALLO DI DIFESA!\nMETA assegnata a ${p[`squadra${opp}`]}`);
             } else {
-                await this.aggiornaPartita(id, { [`falliDifesa${squadra}`]: nuoviFalli });
+                await this.aggiornaPartita(id, { [`falliDifesa${squadra}`]: nuoviFalli, [`falliDifesaTot${squadra}`]: nuovoTot });
                 alert(`✓ Fallo di difesa registrato (${nuoviFalli}/3)`);
             }
-        },
-
+        },   
+        
         async aggiungiCartellino(id, squadra, giocatore, tipo) {
             const p = this.partite.find(x => x.id === id);
             if (!p) return;
@@ -1010,7 +1023,7 @@ const TELEGRAM_CHAT_ID = '1920982994';
                     const nome = p[`squadra${sq}`];
                     p[`gol${sq}`].forEach(ev => {
                         const g = this._nomeGiocatore(ev);
-                        if (!g.includes('METÀ') && !g.includes("META'")) { const k = `${g}||${nome}`; m[k] = (m[k]||0)+1; }
+                        if (!g.includes('META') && !g.includes("META'")) { const k = `${g}||${nome}`; m[k] = (m[k]||0)+1; }
                     });
                     p[`scalpi${sq}`].forEach(ev => { const g = this._nomeGiocatore(ev); const k = `${g}||${nome}`; s[k] = (s[k]||0)+1; });
                     if (p[`mvp${sq}`]) { const k = `${p[`mvp${sq}`]}||${nome}`; mvps[k] = (mvps[k]||0)+1; }
@@ -1217,13 +1230,9 @@ doc.setFontSize(11);
 doc.setFont(undefined, 'bold');
 doc.setTextColor(80, 80, 80);
 
-const falliTotaliA = p.vuotiSquadraA >= 14 ? Math.floor((p.vuotiSquadraA - 14) / 3) + 1 : 0;
-const falliTotaliB = p.vuotiSquadraB >= 14 ? Math.floor((p.vuotiSquadraB - 14) / 3) + 1 : 0;
-
 const yVuoti = y;
-riga(`Vuoti sq.: ${p.vuotiSquadraA}   Falli difesa: ${falliTotaliA}`, 20, yVuoti);
-y = riga(`Vuoti sq.: ${p.vuotiSquadraB}   Falli difesa: ${falliTotaliB}`, 110, yVuoti);
-
+riga(`Vuoti sq.: ${p.vuotiSquadraA}   Falli difesa: ${p.falliDifesaTotA}`, 20, yVuoti);
+y = riga(`Vuoti sq.: ${p.vuotiSquadraB}   Falli difesa: ${p.falliDifesaTotB}`, 110, yVuoti);
 y += 4;
 
 
