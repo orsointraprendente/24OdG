@@ -1016,22 +1016,46 @@ updates[`falliDifesaTot${squadra}`] = (p[`falliDifesaTot${squadra}`] || 0) + 1; 
             });
         },
 
-        calcolaStatistiche() {
-            const m = {}, s = {}, mvps = {};
-            this.partite.forEach(p => {
-                ['A','B'].forEach(sq => {
-                    const nome = p[`squadra${sq}`];
-                    p[`gol${sq}`].forEach(ev => {
-                        const g = this._nomeGiocatore(ev);
-                        if (!g.includes('META') && !g.includes("META'")) { const k = `${g}||${nome}`; m[k] = (m[k]||0)+1; }
-                    });
-                    p[`scalpi${sq}`].forEach(ev => { const g = this._nomeGiocatore(ev); const k = `${g}||${nome}`; s[k] = (s[k]||0)+1; });
-                    if (p[`mvp${sq}`]) { const k = `${p[`mvp${sq}`]}||${nome}`; mvps[k] = (mvps[k]||0)+1; }
-                });
+calcolaStatistiche() {
+    const m = {}, s = {}, mvps = {};
+    const vuotiSq = {}, falliSq = {}, partiteSq = {};
+
+    this.partite.forEach(p => {
+        ['A','B'].forEach(sq => {
+            const nome = p[`squadra${sq}`];
+
+            // Statistiche giocatori (invariate)
+            p[`gol${sq}`].forEach(ev => {
+                const g = this._nomeGiocatore(ev);
+                if (!g.includes('META') && !g.includes("META'")) { const k = `${g}||${nome}`; m[k] = (m[k]||0)+1; }
             });
-            const parse = (obj, campo) => Object.entries(obj).map(([k, n]) => { const [nome, sq] = k.split('||'); return { nome, squadra: sq, [campo]: n }; }).sort((a,b) => b[campo]-a[campo]);
-            return { marcatori: parse(m,'gol'), scalpatori: parse(s,'scalpi'), mvps: parse(mvps,'volte') };
-        },
+            p[`scalpi${sq}`].forEach(ev => { const g = this._nomeGiocatore(ev); const k = `${g}||${nome}`; s[k] = (s[k]||0)+1; });
+            if (p[`mvp${sq}`]) { const k = `${p[`mvp${sq}`]}||${nome}`; mvps[k] = (mvps[k]||0)+1; }
+
+            // Statistiche di squadra (solo partite completate)
+            if (p.completata) {
+                partiteSq[nome] = (partiteSq[nome]||0) + 1;
+                vuotiSq[nome]   = (vuotiSq[nome]||0)   + (p[`vuotiSquadra${sq}`]   || 0);
+                falliSq[nome]   = (falliSq[nome]||0)   + (p[`falliDifesaTot${sq}`] || 0);
+            }
+        });
+    });
+
+    const parse = (obj, campo) => Object.entries(obj).map(([k, n]) => { const [nome, sq] = k.split('||'); return { nome, squadra: sq, [campo]: n }; }).sort((a,b) => b[campo]-a[campo]);
+
+    const perSquadra = (obj) => Object.entries(obj)
+        .filter(([, n]) => n > 0)
+        .map(([nome, n]) => ({ nome, valore: n, partite: partiteSq[nome] || 0 }))
+        .sort((a,b) => b.valore - a.valore || a.partite - b.partite);
+
+    return {
+        marcatori:     parse(m,'gol'),
+        scalpatori:    parse(s,'scalpi'),
+        mvps:          parse(mvps,'volte'),
+        vuotiSquadre:  perSquadra(vuotiSq),
+        falliSquadre:  perSquadra(falliSq),
+    };
+},
 
         /* ----------------------------------------------------------------
            2K — ADMIN: GESTIONE ARBITRI
@@ -1802,36 +1826,61 @@ async inviaRefertoTelegram(id) {
            3G — STATISTICHE
            ---------------------------------------------------------------- */
 
-        renderStatistiche() {
-            const stats = this.calcolaStatistiche();
-            const lista = (arr, campo, colore) => {
-                if (arr.length === 0) return '<p class="text-gray-500">Nessun dato</p>';
-                return `<div class="space-y-2 max-h-96 overflow-y-auto">${arr.map((item,i) => `
-                    <div class="flex justify-between items-center bg-gray-700 rounded px-4 py-3">
-                        <div class="flex items-center gap-3">
-                            <span class="font-bold ${i===0?'text-yellow-400 text-lg':i===1?'text-gray-300':i===2?'text-orange-400':'text-gray-400'}">${i+1}</span>
-                            <div><div class="text-white text-sm font-medium">${item.nome}</div>
-                                <div class="text-xs text-gray-500">${item.squadra}</div></div>
-                        </div>
-                        <span class="${colore} px-3 py-1 rounded-full font-bold text-sm">${item[campo]}${campo==='volte'?'x':''}</span>
-                    </div>`).join('')}</div>`;
-            };
-            document.getElementById('contenuto').innerHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-gray-800 rounded-lg p-6 shadow-xl border border-gray-700">
-                        <h2 class="text-xl font-semibold mb-4 text-cyan-400">⚽ Marcatori (${stats.marcatori.length})</h2>
-                        ${lista(stats.marcatori,'gol','bg-cyan-900 text-cyan-300')}
-                    </div>
-                    <div class="bg-gray-800 rounded-lg p-6 shadow-xl border border-gray-700">
-                        <h2 class="text-xl font-semibold mb-4 text-cyan-400">🔪 Scalpatori (${stats.scalpatori.length})</h2>
-                        ${lista(stats.scalpatori,'scalpi','bg-red-900 text-red-300')}
-                    </div>
-                    <div class="bg-gray-800 rounded-lg p-6 shadow-xl border border-gray-700 md:col-span-2">
-                        <h2 class="text-xl font-semibold mb-4 text-cyan-400">⭐ MVP (${stats.mvps.length})</h2>
-                        ${lista(stats.mvps,'volte','bg-purple-900 text-purple-300')}
-                    </div>
-                </div>`;
-        },
+renderStatistiche() {
+    const stats = this.calcolaStatistiche();
+    const colorePos = (i) => i===0?'text-yellow-400 text-lg':i===1?'text-gray-300':i===2?'text-orange-400':'text-gray-400';
+
+    const lista = (arr, campo, colore) => {
+        if (arr.length === 0) return '<p class="text-gray-500">Nessun dato</p>';
+        return `<div class="space-y-2 max-h-96 overflow-y-auto">${arr.map((item,i) => `
+            <div class="flex justify-between items-center bg-gray-700 rounded px-4 py-3">
+                <div class="flex items-center gap-3">
+                    <span class="font-bold ${colorePos(i)}">${i+1}</span>
+                    <div><div class="text-white text-sm font-medium">${item.nome}</div>
+                        <div class="text-xs text-gray-500">${item.squadra}</div></div>
+                </div>
+                <span class="${colore} px-3 py-1 rounded-full font-bold text-sm">${item[campo]}${campo==='volte'?'x':''}</span>
+            </div>`).join('')}</div>`;
+    };
+
+    const listaSquadre = (arr, colore) => {
+        if (arr.length === 0) return '<p class="text-gray-500">Nessun dato</p>';
+        return `<div class="space-y-2 max-h-96 overflow-y-auto">${arr.map((item,i) => `
+            <div class="flex justify-between items-center bg-gray-700 rounded px-4 py-3">
+                <div class="flex items-center gap-3">
+                    <span class="font-bold ${colorePos(i)}">${i+1}</span>
+                    ${this.imgLogo(item.nome, 'w-6 h-6 object-contain rounded')}
+                    <div><div class="text-white text-sm font-medium">${item.nome}</div>
+                        <div class="text-xs text-gray-500">${item.partite} ${item.partite===1?'partita':'partite'} • media ${(item.valore/item.partite).toFixed(1)}</div></div>
+                </div>
+                <span class="${colore} px-3 py-1 rounded-full font-bold text-sm">${item.valore}</span>
+            </div>`).join('')}</div>`;
+    };
+
+    document.getElementById('contenuto').innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-gray-800 rounded-lg p-6 shadow-xl border border-gray-700">
+                <h2 class="text-xl font-semibold mb-4 text-cyan-400">⚽ Marcatori (${stats.marcatori.length})</h2>
+                ${lista(stats.marcatori,'gol','bg-cyan-900 text-cyan-300')}
+            </div>
+            <div class="bg-gray-800 rounded-lg p-6 shadow-xl border border-gray-700">
+                <h2 class="text-xl font-semibold mb-4 text-cyan-400">🔪 Scalpatori (${stats.scalpatori.length})</h2>
+                ${lista(stats.scalpatori,'scalpi','bg-red-900 text-red-300')}
+            </div>
+            <div class="bg-gray-800 rounded-lg p-6 shadow-xl border border-gray-700">
+                <h2 class="text-xl font-semibold mb-4 text-cyan-400">🔵 Vuoti di squadra (${stats.vuotiSquadre.length})</h2>
+                ${listaSquadre(stats.vuotiSquadre,'bg-blue-900 text-blue-300')}
+            </div>
+            <div class="bg-gray-800 rounded-lg p-6 shadow-xl border border-gray-700">
+                <h2 class="text-xl font-semibold mb-4 text-cyan-400">⚠️ Falli di difesa (${stats.falliSquadre.length})</h2>
+                ${listaSquadre(stats.falliSquadre,'bg-orange-900 text-orange-300')}
+            </div>
+            <div class="bg-gray-800 rounded-lg p-6 shadow-xl border border-gray-700 md:col-span-2">
+                <h2 class="text-xl font-semibold mb-4 text-cyan-400">⭐ MVP (${stats.mvps.length})</h2>
+                ${lista(stats.mvps,'volte','bg-purple-900 text-purple-300')}
+            </div>
+        </div>`;
+},
 
         /* ----------------------------------------------------------------
            3H — PANNELLO ADMIN (solo organizzatori)
