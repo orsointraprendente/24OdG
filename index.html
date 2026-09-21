@@ -1447,19 +1447,22 @@ async inviaRefertoTelegram(id) {
             `📅 ${new Date().toLocaleDateString('it-IT')}`
         );
 
- const { data: risultato, error } = await supabase.functions.invoke('invia-telegram', { body: formData });
-if (error) throw error;
+const { data: risultato, error } = await supabase.functions.invoke('invia-telegram', { body: formData });
+if (error) {
+    let dettaglio = error.message;
+    try { const j = await error.context.json(); dettaglio = j.description || JSON.stringify(j); } catch (_) {}
+    throw new Error(dettaglio);
+}
 
-        if (risultato.ok) {
-            alert('✅ Referto inviato su Telegram!');
-        } else {
-            alert('❌ Errore Telegram: ' + risultato.description);
-        }
-    } catch (e) {
-        console.error('Errore invio Telegram:', e);
-        alert('❌ Errore durante l\'invio del referto.');
-    }
-},
+if (risultato.ok) {
+    alert('✅ Referto inviato su Telegram!');
+} else {
+    alert('❌ Errore Telegram: ' + risultato.description);
+}
+} catch (e) {
+    console.error('Errore invio Telegram:', e);
+    alert('❌ Errore durante l\'invio del referto: ' + e.message);
+}
           
         // =========================================================
         // La PARTE 3 viene incollata qui sotto
