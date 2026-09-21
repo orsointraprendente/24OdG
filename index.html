@@ -1440,7 +1440,6 @@ async inviaRefertoTelegram(id) {
         const nomeFile = `referto_${p.squadraA}_vs_${p.squadraB}.pdf`;
 
         const formData = new FormData();
-        formData.append('chat_id', TELEGRAM_CHAT_ID);
         formData.append('document', pdfBlob, nomeFile);
         formData.append('caption',
             `📋 ${p.squadraA} ${p.punteggioA} - ${p.punteggioB} ${p.squadraB}\n` +
