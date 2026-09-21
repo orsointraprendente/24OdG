@@ -131,8 +131,6 @@
            CONFIGURAZIONE TELEGRAM
            ---------------------------------------------------------------- */
 
-const TELEGRAM_TOKEN   = '8935512668:AAGGKhpnkpYzSwKTmzQwC-hzXQIn05DT6r8';
-const TELEGRAM_CHAT_ID = '1920982994';
       
         /* ----------------------------------------------------------------
            COSTANTI
@@ -1450,11 +1448,8 @@ async inviaRefertoTelegram(id) {
             `📅 ${new Date().toLocaleDateString('it-IT')}`
         );
 
-        const risposta = await fetch(
-            `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendDocument`,
-            { method: 'POST', body: formData }
-        );
-        const risultato = await risposta.json();
+ const { data: risultato, error } = await supabase.functions.invoke('invia-telegram', { body: formData });
+if (error) throw error;
 
         if (risultato.ok) {
             alert('✅ Referto inviato su Telegram!');
