@@ -177,6 +177,10 @@ h3.h3{font-family:var(--serif);font-weight:600;font-size:1.3rem;margin:0 0 12px;
   display:inline-block;font-size:0.82rem;padding:5px 12px;
   border:1px solid var(--scout-green);color:var(--scout-green);margin:0 8px 16px 0;
 }
+.badge-red{
+  display:inline-block;font-size:0.82rem;padding:5px 12px;
+  border:1px solid var(--red);color:var(--red);margin:0 8px 16px 0;
+}
 .badge-gold{border-color:var(--gold);color:var(--gold-soft);}
 
 /* decades / eras */
