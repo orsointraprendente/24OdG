@@ -7,7 +7,6 @@
   --gold-soft:#F2D98A;
   --cream:#F3EFE3;
   --cream-dim:#C7C3B6;
-  --red:#DC143C;
   --scout-green:#4C7A63;
   --serif:'Fraunces', Georgia, serif;
   --sans:'Work Sans', -apple-system, Segoe UI, sans-serif;
@@ -178,10 +177,6 @@ h3.h3{font-family:var(--serif);font-weight:600;font-size:1.3rem;margin:0 0 12px;
   display:inline-block;font-size:0.82rem;padding:5px 12px;
   border:1px solid var(--scout-green);color:var(--scout-green);margin:0 8px 16px 0;
 }
-.badge-red{
-  display:inline-block;font-size:0.82rem;padding:5px 12px;
-  border:1px solid var(--red);color:var(--red);margin:0 8px 16px 0;
-}
 .badge-gold{border-color:var(--gold);color:var(--gold-soft);}
 
 /* decades / eras */
@@ -201,6 +196,37 @@ table.roll th{
 }
 table.roll td{color:var(--cream-dim);}
 table.roll td.tbd{color:#7d7a6f;font-style:italic;}
+.roll-thumb{width:110px;height:74px;object-fit:cover;display:block;border:1px solid var(--line);}
+
+/* albo d'oro — elenco responsive (si impila su mobile) */
+.roll-list{border-top:1px solid var(--line);}
+.roll-row{display:flex;gap:20px;align-items:center;padding:18px 0;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+.roll-row .thumb{width:120px;height:80px;object-fit:cover;border:1px solid var(--line);flex:0 0 auto;background:var(--night-700);}
+.roll-row .thumb.thumb-logo{object-fit:contain;padding:10px;}
+.roll-row .yr{font-family:var(--serif);color:var(--gold);font-size:1.15rem;flex:0 0 60px;}
+.roll-row .meta{display:flex;flex-direction:column;gap:4px;flex:1 1 200px;min-width:180px;}
+.roll-row .field{font-size:0.92rem;color:var(--cream-dim);}
+.roll-row .field .lbl{color:#8a8770;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.04em;margin-right:6px;}
+.roll-row .field.winner-val{color:var(--cream);font-size:1rem;}
+.roll-row .tbd{font-style:italic;color:#7d7a6f;}
+@media (max-width:640px){
+  .roll-row{flex-direction:column;align-items:stretch;gap:12px;}
+  .roll-row .thumb{width:100%;height:190px;}
+  .roll-row .yr{font-size:1.3rem;flex:none;}
+}
+
+/* albo d'oro — griglia con foto squadra vincitrice */
+.roll-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+  gap:2px;border-top:1px solid var(--line);border-left:1px solid var(--line);
+}
+.roll-card{background:var(--night-800);border-right:1px solid var(--line);border-bottom:1px solid var(--line);}
+.roll-card .photo{aspect-ratio:4/3;overflow:hidden;background:var(--night-700);}
+.roll-card .photo img{width:100%;height:100%;object-fit:cover;display:block;}
+.roll-card .info{padding:14px 16px;}
+.roll-card .yr{font-family:var(--serif);color:var(--gold);font-size:1.1rem;display:block;}
+.roll-card .team{color:var(--cream-dim);font-size:0.92rem;margin-top:4px;}
+.roll-card .team.tbd{font-style:italic;color:#7d7a6f;}
 
 /* document list */
 .doc-list{list-style:none;margin:0;padding:0;border-top:1px solid var(--line);}
@@ -229,6 +255,8 @@ footer{border-top:1px solid var(--line);padding:56px 0 32px;}
 .foot-links{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;}
 .foot-links a{text-decoration:none;color:var(--cream-dim);font-size:0.94rem;}
 .foot-links a:hover{color:var(--gold-soft);}
+.foot-social a{display:flex;align-items:center;gap:10px;}
+.foot-social svg{width:18px;height:18px;fill:currentColor;flex:0 0 auto;}
 .foot-bottom{
   margin-top:48px;padding-top:20px;border-top:1px solid var(--line);
   display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;
