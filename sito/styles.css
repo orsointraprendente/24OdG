@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap');
+
 :root{
   --night-900:#0B0F24;
   --night-800:#131A38;
@@ -102,9 +104,10 @@ header{
 .pagehead p.lede{color:var(--cream-dim);max-width:56ch;font-size:1.02rem;margin:0;}
 
 .motto{
-  font-family:var(--serif);font-style:italic;font-weight:600;
-  color:var(--gold);font-size:clamp(1.4rem,3.2vw,1.9rem);
-  text-align:center;margin:0;padding:34px 28px;
+  font-family:'Caveat', cursive;
+  font-weight:700;
+  color:var(--gold);font-size:clamp(2.2rem,5vw,3rem);
+  text-align:center;margin:0;padding:28px 28px;
   border-bottom:1px solid var(--line);
 }
 
