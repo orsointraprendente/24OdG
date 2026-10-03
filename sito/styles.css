@@ -16,6 +16,21 @@
   --sans:'Work Sans', -apple-system, Segoe UI, sans-serif;
   --maxw:1120px;
 }
+:root[data-time="alba"]{
+  --night-900:#3B2A3A; --night-800:#6B3F42; --night-700:#8A5250; --line:#A3685C;
+  --gold:#F7B267; --gold-soft:#FFD9A0; --cream:#FFF3E9; --cream-dim:#E8C9B8; --scout-green:#8A8F5C;
+  --night-900-rgb:59,42,58; --gold-rgb:247,178,103;
+}
+:root[data-time="giorno"]{
+  --night-900:#1C5A8C; --night-800:#2E7BAD; --night-700:#4FA0C9; --line:#6BB8DC;
+  --gold:#FFD166; --gold-soft:#FFE699; --cream:#F7FBFF; --cream-dim:#D7E8F2; --scout-green:#3FA796;
+  --night-900-rgb:28,90,140; --gold-rgb:255,209,102;
+}
+:root[data-time="tramonto"]{
+  --night-900:#3D1B2E; --night-800:#52243A; --night-700:#6B2F48; --line:#80415C;
+  --gold:#F2784B; --gold-soft:#FFB27A; --cream:#FFF1E6; --cream-dim:#E3B8AE; --scout-green:#7A8F5C;
+  --night-900-rgb:61,27,46; --gold-rgb:242,120,75;
+}
 *{box-sizing:border-box;}
 html{scroll-behavior:smooth;}
 body{
