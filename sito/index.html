@@ -102,7 +102,27 @@
   </div>
 </section>
 
-<section class="alt">
+<section>
+  <div class="wrap video-feat">
+    <div>
+      <h2 class="h2">Rivivi un po' di 24oredelleGrazie</h2>
+      <div class="prose">
+        <p>Un assaggio dalle passate edizioni: partite, notturna, premiazioni. Sul canale e nella pagina dedicata trovi tutti gli altri video.</p>
+      </div>
+      <div class="cta-row" style="margin-top:8px;">
+        <a class="btn btn-outline" href="videos.html">Guarda tutti i video</a>
+      </div>
+    </div>
+    <div class="video-card" data-yt="GPiwhrsbaC0">
+      <div class="video-thumb">
+        <img src="https://img.youtube.com/vi/GPiwhrsbaC0/hqdefault.jpg" alt="Video in evidenza 24oredelleGrazie">
+        <span class="play-btn" aria-hidden="true">▶</span>
+      </div>
+    </div>
+  </div>
+</section>
+  
+  <section class="alt">
   <div class="wrap">
     <div class="panel">
       <span class="badge badge-gold">Iscrizioni</span>
@@ -150,5 +170,15 @@
 </footer>
 
 <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+<script>
+  document.querySelectorAll('.video-card').forEach(function(card){
+    card.addEventListener('click', function(){
+      var id = card.getAttribute('data-yt');
+      if(!id) return;
+      var thumb = card.querySelector('.video-thumb');
+      thumb.innerHTML = '<iframe src="https://www.youtube.com/embed/' + id + '?autoplay=1" title="Video 24oredelleGrazie" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+    });
+  });
+</script>
 </body>
 </html>
