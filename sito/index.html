@@ -54,6 +54,17 @@
         <a class="btn btn-gold" href="iscrizioni.html">Come partecipare</a>
         <a class="btn btn-outline" href="evento.html">Scopri l'evento</a>
       </div>
+
+      <!--  -->
+      <div class="countdown" id="countdown">
+        <div class="cd-box"><span class="cd-num" id="cd-days">00</span><span class="cd-lbl">giorni</span></div>
+        <div class="cd-box"><span class="cd-num" id="cd-hours">00</span><span class="cd-lbl">ore</span></div>
+        <div class="cd-box"><span class="cd-num" id="cd-mins">00</span><span class="cd-lbl">min</span></div>
+        <div class="cd-box"><span class="cd-num" id="cd-secs">00</span><span class="cd-lbl">sec</span></div>
+      </div>
+
+
+      
     </div>
     <div class="skyfield" aria-hidden="true">
       <img class="sun" src="https://raw.githubusercontent.com/orsointraprendente/24OdG/main/sito/immagini/logo24h.gif" alt="Logo 24oredelleGrazie: sole e stelle">
@@ -179,6 +190,21 @@
       thumb.innerHTML = '<iframe src="https://www.youtube.com/embed/' + id + '?autoplay=1" title="Video 24oredelleGrazie" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
     });
   });
+</script>
+<script>
+(function(){
+  var target = new Date("2027-06-12T15:00:00+02:00"); // <-- sostituisci con data e ora reali della prossima edizione
+  var d=document.getElementById('cd-days'), h=document.getElementById('cd-hours'), m=document.getElementById('cd-mins'), s=document.getElementById('cd-secs');
+  function tick(){
+    var diff = target - new Date();
+    if(diff <= 0){ d.textContent=h.textContent=m.textContent=s.textContent='00'; return; }
+    d.textContent = String(Math.floor(diff/86400000)).padStart(2,'0');
+    h.textContent = String(Math.floor(diff%86400000/3600000)).padStart(2,'0');
+    m.textContent = String(Math.floor(diff%3600000/60000)).padStart(2,'0');
+    s.textContent = String(Math.floor(diff%60000/1000)).padStart(2,'0');
+  }
+  tick(); setInterval(tick, 1000);
+})();
 </script>
 </body>
 </html>
